@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>工单智能协作 Agent</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --panel2:#1f232c; --border:#2a2f3a; --text:#e6e8ec; --muted:#9aa3b2; --accent:#4f8cff; --green:#36c275; --red:#ff5d5d; --amber:#ffb020; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+  header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--panel); }
+  header h1 { font-size:16px; margin:0; font-weight:600; }
+  .badge { font-size:12px; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+  .badge.llm { color:var(--green); border-color:var(--green); }
+  .badge.rule { color:var(--amber); border-color:var(--amber); }
+  .spacer { flex:1; }
+  .link { font-size:12px; color:var(--accent); cursor:pointer; border:1px solid var(--border); padding:4px 10px; border-radius:6px; }
+  #log { flex:1; overflow:auto; padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
+  .msg { max-width:760px; padding:12px 14px; border-radius:12px; line-height:1.6; white-space:pre-wrap; font-size:14px; }
+  .msg.user { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .msg.agent { align-self:flex-start; background:var(--panel2); border:1px solid var(--border); border-bottom-left-radius:4px; }
+  .msg.sys { align-self:flex-start; background:transparent; color:var(--muted); font-size:12px; padding:2px 6px; }
+  .steps { font-size:11px; color:var(--muted); margin-top:6px; }
+  .actions { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+  .act { border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--panel); }
+  .act .summary { font-size:13px; margin-bottom:8px; }
+  .act .btns { display:flex; gap:8px; }
+  button { font:inherit; cursor:pointer; border:none; border-radius:8px; padding:6px 14px; font-size:13px; }
+  .ok { background:var(--green); color:#04210f; }
+  .no { background:transparent; color:var(--red); border:1px solid var(--red); }
+  .done { color:var(--green); font-size:13px; }
+  footer { border-top:1px solid var(--border); padding:12px 20px; display:flex; gap:10px; background:var(--panel); }
+  footer input { flex:1; background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 14px; font-size:14px; outline:none; }
+  footer button { background:var(--accent); color:#fff; padding:10px 22px; }
+  .hint { color:var(--muted); font-size:11px; }
+  pre.tools { background:#0b0d11; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:12px; overflow:auto; max-height:240px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 工单智能协作 Agent</h1>
+  <span id="modeBadge" class="badge">加载中…</span>
+  <div class="spacer"></div>
+  <span class="link" id="toolsBtn">查看工具</span>
+</header>
+<div id="log"></div>
+<footer>
+  <input id="input" placeholder="例如：新建工单：笔记本无法开机 ｜ 把工单派给张三 ｜ 查工单 123456" autocomplete="off" />
+  <button id="send">发送</button>
+</footer>
+
+<script>
+const API = "/api/agent";
+let sessionId = "sess-" + Math.random().toString(36).slice(2, 10);
+const log = document.getElementById("log");
+
+function addMsg(role, text, steps) {
+  const d = document.createElement("div");
+  d.className = "msg " + role;
+  d.textContent = text;
+  if (steps) {
+    const s = document.createElement("div");
+    s.className = "steps";
+    s.textContent = "（推理 " + steps + " 步）";
+    d.appendChild(s);
+  }
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+function addSys(text) { const d = document.createElement("div"); d.className="msg sys"; d.textContent=text; log.appendChild(d); log.scrollTop=log.scrollHeight; }
+
+async function loadMode() {
+  try {
+    const r = await (await fetch(API + "/mode")).json();
+    const b = document.getElementById("modeBadge");
+    b.textContent = r.mode === "llm" ? "模式：真实大模型 LLM" : "模式：本地兜底规划器（无需 Key）";
+    b.className = "badge " + (r.mode === "llm" ? "llm" : "rule");
+  } catch(e) { addSys("无法连接 Agent 服务，请确认后端 8080 已启动。"); }
+}
+loadMode();
+
+document.getElementById("toolsBtn").onclick = async () => {
+  try {
+    const tools = await (await fetch(API + "/tools")).json();
+    const pre = document.createElement("pre");
+    pre.className = "tools";
+    pre.textContent = tools.map(t => "• " + t.name + "：" + t.description).join("\n\n");
+    const d = document.createElement("div"); d.className="msg agent"; d.appendChild(pre);
+    log.appendChild(d); log.scrollTop=log.scrollHeight;
+  } catch(e) { addSys("获取工具清单失败：" + e); }
+};
+
+async function send() {
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  addMsg("user", text);
+  try {
+    const resp = await (await fetch(API + "/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ sessionId, message: text })
+    })).json();
+    const d = addMsg("agent", resp.replyText || "", resp.steps);
+    if (resp.pendingActions && resp.pendingActions.length) {
+      const wrap = document.createElement("div"); wrap.className="actions";
+      resp.pendingActions.forEach(a => wrap.appendChild(renderAction(a)));
+      d.appendChild(wrap);
+    }
+  } catch(e) { addSys("调用失败：" + e); }
+}
+
+function renderAction(a) {
+  const box = document.createElement("div"); box.className="act";
+  const sum = document.createElement("div"); sum.className="summary";
+  sum.textContent = "⏳ 待确认：" + a.summary;
+  const btns = document.createElement("div"); btns.className="btns";
+  const ok = document.createElement("button"); ok.className="ok"; ok.textContent="确认执行";
+  const no = document.createElement("button"); no.className="no"; no.textContent="取消";
+  ok.onclick = async () => {
+    const r = await (await fetch(API + "/confirm", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ sessionId, actionId:a.id, approved:true })
+    })).json();
+    box.innerHTML = ""; const done = document.createElement("div"); done.className="done";
+    done.textContent = "✅ " + (r.result || "已执行"); box.appendChild(done);
+    addSys("你确认了：" + a.summary);
+  };
+  no.onclick = async () => {
+    const r = await (await fetch(API + "/confirm", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ sessionId, actionId:a.id, approved:false })
+    })).json();
+    box.innerHTML = ""; const done = document.createElement("div"); done.className="done";
+    done.textContent = "🚫 " + (r.result || "已取消"); box.appendChild(done);
+  };
+  btns.appendChild(ok); btns.appendChild(no);
+  box.appendChild(sum); box.appendChild(btns);
+  return box;
+}
+
+document.getElementById("send").onclick = send;
+document.getElementById("input").addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+addSys("提示：写操作（建单/分派/升级）会先生成“待确认”卡片，需你点确认才执行——这就是 Agent 的“人在回路”。");
+</script>
+</body>
+</html>

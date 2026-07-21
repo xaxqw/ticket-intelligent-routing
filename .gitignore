@@ -1,0 +1,59 @@
+# === 运行时依赖（太大，不进Git，用脚本重新拷贝）===
+_runtime/
+_build/
+
+# === 数据库与持久化数据（隐私+体积）===
+data/
+dump.rdb
+*.h2.db
+*.mv.db
+
+# === 日志 ===
+*.log
+_app_*.log
+backend_*.log
+frontend.log
+redis.log
+build.log
+startup.log
+backend.err
+frontend_err.log
+_app_err.log
+
+# === Java 编译产物（可重建）===
+target/
+_run/
+*.class
+*.jar
+!ticket-web/target/*.jar   # 保留fat jar作为发布产物（可选，注释掉则不保留）
+
+# === Node.js 前端 ===
+node_modules/
+dist/
+.vite/
+
+# === Python 缓存 ===
+__pycache__/
+*.pyc
+
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# === 系统文件 ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === 临时/备份 ===
+_ARCHIVE_stale_smaret/
+*.lnk
+*.bak
+*.tmp
+
+# === 敏感配置（如有）===
+# application-local.yml
+# *.env

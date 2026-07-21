@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ticket</groupId>
+        <artifactId>ticket-system</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>ticket-workflow</artifactId>
+    <packaging>jar</packaging>
+    <name>ticket-workflow</name>
+    <description>Flowable 工作流引擎整合：BPMN、会签、动态驳回</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ticket</groupId>
+            <artifactId>ticket-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flowable</groupId>
+            <artifactId>flowable-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+</project>

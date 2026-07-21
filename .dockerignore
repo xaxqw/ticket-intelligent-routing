@@ -1,0 +1,22 @@
+# 构建上下文忽略项：减小镜像体积、避免把宿主机产物打进镜像
+
+# Maven 构建产物
+**/target
+
+# 前端依赖与旧构建产物（容器内重新 install / build）
+**/node_modules
+ticket-frontend/dist
+
+# 运行时数据（H2 文件库等）
+data/
+
+# 已打包进 static 的历史前端产物（Dockerfile 会从源码重新构建）
+ticket-web/src/main/resources/static
+
+# 版本控制与 IDE
+.git
+**/.idea
+**/*.iml
+
+# 文档不影响运行，无需进镜像
+**/*.md

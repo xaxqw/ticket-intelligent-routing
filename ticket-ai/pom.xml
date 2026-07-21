@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ticket</groupId>
+        <artifactId>ticket-system</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>ticket-ai</artifactId>
+    <packaging>jar</packaging>
+    <name>ticket-ai</name>
+    <description>AI 语义分派：向量检索 + 历史工单 few-shot 匹配</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ticket</groupId>
+            <artifactId>ticket-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- 可选：对接 Chroma 向量库时启用 HTTP 客户端 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 单元测试：验证向量化器可插拔（TF-IDF 之外可换稠密 embedding） -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

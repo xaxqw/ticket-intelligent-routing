@@ -1,0 +1,25 @@
+# ============================================================================
+# 生产 Profile（spring.profiles.active=mysql）
+# 用 MySQL 替代默认的 H2 文件库；Flowable / JPA 均复用同一数据源自动建表。
+# 所有连接参数均可被环境变量覆盖，便于 Docker / K8s 注入。
+# ============================================================================
+spring:
+  datasource:
+    # 容器编排默认值指向 compose 中的 mysql 服务；本机直连时改环境变量即可
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/ticketdb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:ticket}
+    password: ${SPRING_DATASOURCE_PASSWORD:ticket123}
+  jpa:
+    # 切换到 MySQL 方言
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        # 全部标识符加反引号，规避 status 等 MySQL 保留字冲突
+        globally_quoted_identifiers: true
+  # 生产环境关闭 H2 控制台
+  h2:
+    console:
+      enabled: false

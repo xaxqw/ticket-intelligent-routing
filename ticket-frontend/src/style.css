@@ -1,0 +1,152 @@
+:root {
+  --bg: #141414;
+  --panel: #1f1f1f;
+  --border: #333;
+  --text: #e6e6e6;
+  --muted: #999;
+  --primary: #1677ff;
+  --danger: #d4380d;
+  --ok: #52c41a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+.app { max-width: 1080px; margin: 0 auto; padding: 16px; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 16px; }
+header h1 { font-size: 20px; margin: 0; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab { padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--muted); background: var(--panel); }
+.tab.active { color: #fff; border-color: var(--primary); background: #11233f; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+label { display: block; margin: 8px 0 4px; color: var(--muted); font-size: 13px; }
+input, textarea, select { width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid var(--border); color: var(--text); border-radius: 6px; }
+button { padding: 8px 14px; border: none; border-radius: 6px; background: var(--primary); color: #fff; cursor: pointer; margin-right: 8px; }
+button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+button.danger { background: var(--danger); }
+button.ok { background: var(--ok); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; line-height: 1.5; }
+th { color: var(--muted); font-weight: 500; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.tag-hardware { background: #15354f; color: #69b1ff; }
+.tag-finance { background: #2a2113; color: #ffc069; }
+.tag-permission { background: #1f2a16; color: #b7eb8f; }
+.badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: #333; }
+.badge.slow { background: #4a1410; color: #ff7875; }
+.reject-reason { margin-top: 8px; padding: 8px 10px; background: #2a1410; border: 1px solid #5c1f12; border-radius: 6px; color: #ff9c85; font-size: 13px; }
+.row { display: flex; gap: 12px; }
+.col { flex: 1; }
+.muted { color: var(--muted); font-size: 12px; }
+.hint { background: #11233f; border: 1px solid #1d4ed8; padding: 8px 12px; border-radius: 6px; margin-top: 12px; font-size: 13px; }
+.hint.error-hint { background: #3a1010; border-color: #d4380d; color: #ff7875; }
+
+/* 任务卡片 */
+.task-card {
+  background: #1a1a2e;
+  border: 1px solid var(--border);
+  border-left: 4px solid #888;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.badge-step {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.step-desc { font-size: 12px; color: var(--muted); margin: 6px 0 8px; line-height: 1.5; }
+.meta-row { font-size: 11.5px; margin-top: 4px; word-break: break-all; }
+code { background: #2a2a2a; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+
+/* 预设角色按钮 */
+.preset-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s;
+}
+.preset-btn:hover { border-color: var(--primary); color: var(--text); }
+.preset-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* 该窗口有待办：持续亮灯（黄色呼吸边框） */
+.preset-btn.has-task {
+  border-color: #f1c40f;
+  color: #f1c40f;
+  box-shadow: 0 0 6px rgba(241,196,15,.45);
+}
+.preset-btn.has-task.active { background: var(--primary); color:#fff; border-color: var(--primary); }
+/* 待办数量角标 */
+.win-count {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #f1c40f;
+  color: #1a1a2e;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 16px;
+}
+/* 操作后对应审批窗口亮灯（绿色脉冲光晕） */
+.preset-btn.lit {
+  background: #27ae60;
+  color: #fff;
+  border-color: #27ae60;
+  box-shadow: 0 0 0 0 rgba(39,174,96,.7);
+  animation: lit-pulse 1.2s ease-out 2;
+}
+@keyframes lit-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(39,174,96,.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(39,174,96,0); }
+  100% { box-shadow: 0 0 0 0 rgba(39,174,96,0); }
+}
+/* 任务卡上的归属窗口徽标 */
+.win-badge {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* 空状态 */
+.empty-state { text-align: center; padding: 36px 16px; color: var(--muted); }
+
+/* AI 低置信警示徽标（提交结果处） */
+.warn-badge {
+  background: #5a1d1d;
+  color: #ffb3a7;
+  border: 1px solid #a33;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+/* 标签页上的待复核数量角标 */
+.tab-badge {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #e67e22;
+  color: #1a1a2e;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 16px;
+}

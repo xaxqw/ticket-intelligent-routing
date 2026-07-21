@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://www.omg.org/spec/BPMN/20100524/MODEL/BPMN20.xsd"
+             targetNamespace="http://ticket.com/process">
+
+    <!--
+      企业工单主流程（条件性路由 / 智能分流）：
+        提交 -> 初审 -> [驳回]补充材料 -> 初审
+                     -> 复审(顺序会签, reviewerA 先审, 通过后 reviewerB 再审, 任一驳回即整体驳回)
+                     -> [复审通过] gw3 排他网关：按工单分类决定是否需要财务打款
+                          - 财务类(finance-group) -> 财务打款 -> 归档 -> 结束
+                          - 硬件类/权限类          -> 直接归档 -> 结束（无需打款）
+      关键点：
+        1) 顺序复审：audit2 为顺序多实例(isSequential=true)，reviewerA 的任务完成前
+           reviewerB 的任务不会被创建（即“前一个没审完，后一个不出现”）；
+        2) 条件性路由：gw3 根据流程变量 categoryGroup 判断——只有财务类工单才进入
+           财务打款节点，这是“智能分流”的核心体现（不同工单走不同审批路径）；
+        3) 动态驳回：除建模的“驳回->补充材料”回路外，WorkflowService 还通过
+           changeActivityState 支持跳转到任意历史节点（见 WorkflowService.rejectDynamic）。
+    -->
+    <process id="ticketProcess" name="企业工单流程" isExecutable="true">
+
+        <startEvent id="start" name="开始"/>
+
+        <userTask id="audit1" name="初审" flowable:candidateGroups="${categoryGroup}"/>
+
+        <exclusiveGateway id="gw1" name="初审结论"/>
+
+        <userTask id="audit2" name="复审" flowable:candidateUsers="${reviewer}">
+            <extensionElements>
+                <flowable:taskListener event="complete"
+                                       class="com.ticket.workflow.service.ReviewCompleteListener"/>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="true"
+                                              flowable:collection="${reviewers}"
+                                              flowable:elementVariable="reviewer">
+                <completionCondition>${rejected == true || nrOfCompletedInstances == nrOfInstances}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+
+        <exclusiveGateway id="gw2" name="复审结论"/>
+
+        <exclusiveGateway id="gw3" name="是否需要财务打款"/>
+
+        <userTask id="pay" name="财务打款" flowable:candidateGroups="finance-group"/>
+
+        <userTask id="revise" name="补充材料" flowable:candidateGroups="${categoryGroup}"/>
+
+        <serviceTask id="archive" name="归档"
+                     flowable:delegateExpression="${ticketCompletionHandler}"/>
+
+        <endEvent id="end" name="结束"/>
+
+        <sequenceFlow id="f1" sourceRef="start" targetRef="audit1"/>
+        <sequenceFlow id="f2" sourceRef="audit1" targetRef="gw1"/>
+        <sequenceFlow id="f3" name="通过" sourceRef="gw1" targetRef="audit2">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == true}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="f4" name="驳回" sourceRef="gw1" targetRef="revise">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == false}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="f5" sourceRef="audit2" targetRef="gw2"/>
+        <sequenceFlow id="f6" name="通过" sourceRef="gw2" targetRef="gw3">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${rejected == false}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="f7" name="驳回" sourceRef="gw2" targetRef="revise">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${rejected == true}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="f8" sourceRef="revise" targetRef="audit1"/>
+        <sequenceFlow id="f9" sourceRef="pay" targetRef="archive"/>
+        <sequenceFlow id="f10" sourceRef="archive" targetRef="end"/>
+        <!-- 条件性路由：财务类复审通过后仍需打款；硬件/权限类直接归档（无需打款） -->
+        <sequenceFlow id="f11" name="需要打款" sourceRef="gw3" targetRef="pay">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${categoryGroup == 'finance-group'}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="f12" name="无需打款" sourceRef="gw3" targetRef="archive">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${categoryGroup != 'finance-group'}]]></conditionExpression>
+        </sequenceFlow>
+    </process>
+</definitions>

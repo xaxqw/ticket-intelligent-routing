@@ -1,0 +1,104 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ticket-system
+  datasource:
+    # 文件库：数据落盘到 D:/fenliu/data/ticketdb.mv.db，重启后保留
+    url: jdbc:h2:file:D:/fenliu/data/ticketdb;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    # 显式指定 H2 方言，避免文件库首连时方言自动探测失败
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 3000
+  # Spring Boot 2.6+ 默认 PathPatternParser，springdoc 易 404，回退 Ant 风格匹配确保 Swagger 正常
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+# Flowable 工作流引擎
+flowable:
+  # 开发期自动建表
+  database-schema-update: true
+  # 仅用户任务，无需异步作业线程
+  async-executor-activate: false
+  # 记录完整历史，用于 SLA 时长统计
+  history-level: full
+  # 自动部署 processes 目录下的 BPMN
+  check-process-definitions: true
+  process:
+    definition-location: classpath*:/processes/
+
+# AI 语义分派
+ai:
+  vector-store-type: local   # local | chroma
+  top-k: 5
+  chroma-url: http://localhost:8000
+  chroma-collection: ticket_history
+  seed-resource: classpath:ai/historical-tickets.json
+
+  # ===================== Agent 编排层 =====================
+  # 总开关与 ReAct 循环步数
+  agent:
+    enabled: true
+    max-steps: 6
+    # 智能来源：默认走本地确定性“兜底规划器”，无需任何 API Key 即可完整跑通 ReAct 工具循环。
+    # 想要“真实大模型驱动”时：把 enabled 置为 true，并填好 base-url / api-key / model
+    # （任何 OpenAI 兼容 /v1/chat/completions 端点：DeepSeek / 通义千问 / 本地 Ollama 均可）。
+    llm:
+      enabled: false
+      base-url: https://api.openai.com/v1
+      api-key: ""
+      model: gpt-4o-mini
+      temperature: 0.2
+      timeout-ms: 30000
+
+# Swagger / OpenAPI 3 接口文档（springdoc-openapi）
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    # 去掉默认 petstore 示例，直接进入本项目接口
+    disable-swagger-default-url: true
+    operationsSorter: method
+  info:
+    title: 企业级工单智能分流与协同处理系统 API
+    version: 1.0.0
+    description: 工单 AI 智能分类与路由、Flowable 工作流协同处理、Redisson 分布式锁幂等、SLA 监控、置信度人工复核闭环。
+
+logging:
+  level:
+    root: INFO
+    org.flowable: WARN
+    com.ticket: DEBUG
+
+# ===================== 通知集成（可插拔，离线默认仅 console） =====================
+# 默认仅控制台 / 日志通知（零依赖、离线可演示），所有事件都会打印到后端日志。
+# 想接钉钉群机器人：把 enabled 置为 true 并填 webhook（形如
+#   https://oapi.dingtalk.com/robot/send?access_token=xxxx），
+# 若机器人开了“加签”安全设置，再把 secret 填上即可自动追加签名。
+notification:
+  console:
+    enabled: true
+  dingtalk:
+    enabled: false
+    webhook: ""
+    secret: ""
