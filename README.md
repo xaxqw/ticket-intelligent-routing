@@ -77,7 +77,7 @@ mvn -pl ticket-web -am spring-boot:run     # 默认端口 8080
 ```
 启动后访问：
 - API 基准：`http://localhost:8080/api`
-- H2 控制台：`http://localhost:8080/h2-console`（JDBC: `jdbc:h2:mem:ticketdb`）
+- H2 控制台：`http://localhost:8080/h2-console`（JDBC URL：`jdbc:h2:file:./data/ticketdb`）
 
 ### 3. 启动前端
 ```bash
@@ -129,23 +129,7 @@ curl "http://localhost:8080/api/dashboard/sla"
 
 ---
 
-## 五、技术选型与面试讲稿要点
-
-**为什么用 Flowable 而不是自己写状态 if-else？**
-企业流程会变（加一个会签节点、改驳回策略）。Flowable 用 BPMN 把“流程”从代码里抽离，改流程不改业务代码，且自带历史、任务、权限模型。这是“懂业务流转的后端”和“纯 CRUD”的分水岭。
-
-**为什么 AI 分派不训练模型？**
-工单分类样本少、迭代快、可解释要求高。few-shot 向量检索（历史工单做参考）85% 准确率就够，且能给出“为什么分到这类”的证据；真要提升再上 Chroma/微调，接口不变。
-
-**幂等与分布式锁解决什么？**
-高并发下“重复提交建多单”“两人同时接单重复处理”。幂等键防建单重入，Redis 锁防接单竞争——本质都是把“并发副作用”变成“幂等/互斥”。
-
-**SLA 仪表盘的业务价值？**
-把“流程慢在哪”量化出来。比如发现“复审”平均 3 天，就能针对性加人或改会签策略，而不是凭感觉优化。
-
----
-
-## 六、可扩展方向（简历加分项）
+## 五、可扩展方向
 
 - 流程版本灰度：BPMN 改了，旧流程实例不受影响（Flowable 天然支持多版本共存）。
 - 向量库升级：本地 `LocalVectorStore` 换 `ChromaVectorStore`（`ai.vector-store-type=chroma`），零业务改动。

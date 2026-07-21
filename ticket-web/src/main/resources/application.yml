@@ -5,8 +5,8 @@ spring:
   application:
     name: ticket-system
   datasource:
-    # 文件库：数据落盘到 D:/fenliu/data/ticketdb.mv.db，重启后保留
-    url: jdbc:h2:file:D:/fenliu/data/ticketdb;DB_CLOSE_ON_EXIT=FALSE
+    # 文件库：数据落盘到项目根 data/ticketdb.mv.db，重启后保留（相对路径，跨机器可用）
+    url: jdbc:h2:file:./data/ticketdb;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""

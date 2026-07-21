@@ -20,3 +20,13 @@ ticket-web/src/main/resources/static
 
 # 文档不影响运行，无需进镜像
 **/*.md
+
+# 本地自包含运行依赖（496MB+），绝不进镜像；外人靠 Docker/Maven 重新构建
+_runtime/
+_build/
+_run/
+*.lnk
+*.log
+dump.rdb
+start-ticket-system.bat
+create-desktop-shortcut.py
