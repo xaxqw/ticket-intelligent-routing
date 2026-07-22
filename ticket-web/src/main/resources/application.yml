@@ -6,7 +6,10 @@ spring:
     name: ticket-system
   datasource:
     # 文件库：数据落盘到项目根 data/ticketdb.mv.db，重启后保留（相对路径，跨机器可用）
-    url: jdbc:h2:file:./data/ticketdb;DB_CLOSE_ON_EXIT=FALSE
+    # AUTO_SERVER=TRUE: 安全支持多进程/多连接访问同一 H2 文件，
+    # 消除 “The file is locked” 导致的工单间歇性读不出（重启/连点/打开 H2 控制台时触发）。
+    # 注意：H2 2.x 不允许 AUTO_SERVER 与 DB_CLOSE_ON_EXIT=FALSE 共存，故去掉后者（文件模式数据照常落盘）。
+    url: jdbc:h2:file:./data/ticketdb;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
