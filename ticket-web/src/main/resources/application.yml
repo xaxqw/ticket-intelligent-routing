@@ -35,8 +35,9 @@ spring:
 
 # Flowable 工作流引擎
 flowable:
-  # 开发期自动建表
-  database-schema-update: true
+  # 跳过 Liquibase 建表/校验（数据表已存在于 data/ticketdb，每次启动省去数十秒 schema 校验）。
+  # 若误删 D:\fenliu\data 目录导致表丢失，请临时改回 true 启动一次重建表，再改回 false。
+  database-schema-update: false
   # 仅用户任务，无需异步作业线程
   async-executor-activate: false
   # 记录完整历史，用于 SLA 时长统计

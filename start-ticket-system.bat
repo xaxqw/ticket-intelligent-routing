@@ -34,7 +34,7 @@ if not errorlevel 1 (
   echo [2/4] Backend already running.
 ) else (
   echo [2/4] Starting Backend on port 8080 ...
-  start "Backend" cmd /c "cd /d D:\fenliu && java -Dserver.port=8080 -Xmx512m -cp D:\fenliu\_run\classes;D:\fenliu\_build\lib\* com.ticket.web.TicketApplication"
+  start "Backend" cmd /c "cd /d D:\fenliu && java -Dserver.port=8080 -XX:TieredStopAtLevel=1 -noverify -Xmx768m -cp D:\fenliu\_run\classes;D:\fenliu\_build\lib\* com.ticket.web.TicketApplication"
 )
 
 REM --- Step 3: Frontend ---
